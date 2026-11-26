@@ -255,11 +255,12 @@
     <h2><span><span class="step">8</span>Send</span></h2>
     <div class="btns">
       <button class="primary" id="btnPrint">Save as PDF / Print</button>
-      <button class="primary" id="btnCopy">Copy for email</button>
+      <button class="primary" id="btnCopy">Copy this update for email</button>
+      <button id="btnCopyAll">Copy with previous updates</button>
       <button id="btnHistory">Add to event history</button>
     </div>
     <div class="status" id="outStatus"></div>
-    <div class="hint">After sending each report, click <b>Add to event history</b>. The next report prints on top with earlier reports stacked below. Photos print in the PDF. For email, attach the photos separately if Outlook strips them.</div>
+    <div class="hint"><b>Copy this update for email</b> copies only the current update. <b>Copy with previous updates</b> and <b>Save as PDF</b> include the earlier ones stacked below. After sending each report, click <b>Add to event history</b>. Photos print in the PDF. For email, attach the photos separately if Outlook strips them.</div>
     <div id="histList" class="hint" style="margin-top:8px"></div>
   </div>
 </div>
@@ -595,7 +596,7 @@
     return s.join(' ');
   }
 
-  function buildReport() {
+  function buildReport(noPrev) {
     const t = stamp(), T = totals(), isFinal = st.type === 'FINAL UPDATE';
     let h = `<div class="report-page" style="font-family:Arial,Helvetica,sans-serif;color:#111">`;
     h += `<div style="font:700 22px Arial,Helvetica,sans-serif;color:${NAVY};margin:0">San Clemente High Tide Event – MP 206 Status</div>`;
@@ -659,7 +660,7 @@
     if (!isFinal && $('nextInsp').value) r.push(B('Next Inspection', $('nextInsp').value));
     if ($('notes').value.trim()) r.push(B('Notes', $('notes').value));
     if (r.length) h += UL(r);
-    if (!isFinal) h += P(`<i>Next update ${esc(nextUpdateText())}. Previous updates follow below.</i>`);
+    if (!isFinal) h += P(`<i>Next update ${esc(nextUpdateText())}.${noPrev || !history.length ? '' : ' Previous updates follow below.'}</i>`);
 
     // photos
     const ph = st.photos;
@@ -711,22 +712,28 @@
   $('incBeaches').addEventListener('change', refresh);
 
   $('btnPrint').onclick = () => { refresh(); window.print(); };
-  $('btnCopy').onclick = async () => {
-    const html = `<div style="font-family:Arial,Helvetica,sans-serif">${fullReport()}</div>`;
+  async function copyForEmail(withPrev) {
+    const body = withPrev ? fullReport() : buildReport(true);
+    const html = `<div style="font-family:Arial,Helvetica,sans-serif">${body}</div>`;
+    const tmpTxt = document.createElement('div'); tmpTxt.innerHTML = body;
+    const text = tmpTxt.innerText || tmpTxt.textContent || '';
+    const what = withPrev ? 'This update and all previous updates copied.' : 'This update copied (previous updates left out).';
     const S = $('outStatus');
     try {
       if (window.ClipboardItem) {
-        await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type:'text/html' }), 'text/plain': new Blob([$('preview').innerText], { type:'text/plain' }) })]);
+        await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([html], { type:'text/html' }), 'text/plain': new Blob([text], { type:'text/plain' }) })]);
       } else throw new Error('no ClipboardItem');
-      S.className = 'status ok'; S.textContent = 'Copied. Paste into a new Outlook email.';
+      S.className = 'status ok'; S.textContent = what + ' Paste into a new Outlook email.';
     } catch {
       const tmp = document.createElement('div'); tmp.contentEditable = 'true'; tmp.innerHTML = html; tmp.style.position = 'fixed'; tmp.style.left = '-9999px';
       document.body.appendChild(tmp); const rg = document.createRange(); rg.selectNodeContents(tmp);
       const sel = getSelection(); sel.removeAllRanges(); sel.addRange(rg);
       const ok = document.execCommand('copy'); sel.removeAllRanges(); tmp.remove();
-      S.className = 'status ' + (ok ? 'ok' : 'err'); S.textContent = ok ? 'Copied. Paste into a new Outlook email.' : 'Copy was blocked by the browser. Use Save as PDF and attach it instead.';
+      S.className = 'status ' + (ok ? 'ok' : 'err'); S.textContent = ok ? what + ' Paste into a new Outlook email.' : 'Copy was blocked by the browser. Use Save as PDF and attach it instead.';
     }
-  };
+  }
+  $('btnCopy').onclick = () => copyForEmail(false);
+  $('btnCopyAll').onclick = () => copyForEmail(true);
   $('btnHistory').onclick = () => {
     const t = stamp();
     const entry = { label: `${st.type === 'FINAL UPDATE' ? 'Final' : st.type === 'INITIAL REPORT' ? 'Initial' : 'Update'} ${t.short}`, html: buildReport(), used: JSON.parse(JSON.stringify(st.used)) };
