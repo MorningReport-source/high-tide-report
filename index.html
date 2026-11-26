@@ -572,7 +572,8 @@
   const P = (html) => `<p style="font:13px/1.45 Arial,Helvetica,sans-serif;margin:0 0 6px;color:#111">${html}</p>`;
   const UL = (items) => `<ul style="margin:0 0 4px;padding-left:20px;font:13px/1.45 Arial,Helvetica,sans-serif;color:#111">${items.map((i) => `<li style="margin:0 0 2px">${i}</li>`).join('')}</ul>`;
   const B = (k, v) => `<b>${esc(k)}:</b> ${esc(v).replace(/\n/g, '<br>')}`;
-  const TH = (t, w) => `<th style="background:${NAVY};color:#fff;font:700 12px Arial,Helvetica,sans-serif;text-align:left;padding:5px 7px;border:1px solid #9aa7bd${w ? `;width:${w}` : ''}">${esc(t)}</th>`;
+  // Light header: reads well even when an email client drops the fill or forces dark text.
+  const TH = (t, w) => `<th bgcolor="#DCE4F0" style="background:#DCE4F0;background-color:#DCE4F0;color:#000000;font:700 12px Arial,Helvetica,sans-serif;text-align:left;padding:5px 7px;border:1px solid #9aa7bd${w ? `;width:${w}` : ''}">${esc(t)}</th>`;
   const TD = (t, extra) => `<td style="font:12.5px Arial,Helvetica,sans-serif;padding:5px 7px;border:1px solid #c9d1de;vertical-align:top${extra || ''}">${t}</td>`;
   const condColor = (c) => /washout|displaced|water \/ debris on track/i.test(c) ? '#F8D7DA' : /overtopping/i.test(c) ? '#FFE8B3' : /run-up/i.test(c) ? '#FFF6CC' : '#D8EFD9';
   const trackColor = (c) => /out of service/i.test(c) ? '#F8D7DA' : /slow|freight/i.test(c) ? '#FFE8B3' : '#D8EFD9';
