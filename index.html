@@ -606,7 +606,8 @@
       h += `<div style="background:#D8EFD9;border:1px solid #5A9B5E;padding:8px 12px;margin:6px 0 4px;font:700 14px/1.4 Arial,Helvetica,sans-serif;color:#1E5631">High tide event monitoring at MP 206.0–206.8 is complete. ${esc($('trackStatus').value === 'Normal operations' ? 'Trains are operating normally through the area.' : $('trackStatus').value + '.')}</div>`;
     }
     h += `<h2 style="font:700 15px Arial,Helvetica,sans-serif;color:#000;margin:14px 0 5px">${esc(isFinal ? 'Final Update' : st.type === 'INITIAL REPORT' ? 'Situation' : `${t.time} Update`)}</h2>`;
-    h += `<p style="font:700 13px/1.45 Arial,Helvetica,sans-serif;margin:0 0 6px;color:#000;background:#FFF200;padding:6px 8px">${esc(($('narrative').value || '').trim() || autoNarrative(t, T))}</p>`;
+    // Yellow block as a one-cell table: Outlook keeps cell backgrounds (bgcolor) but drops paragraph backgrounds.
+    h += `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;width:100%;margin:0 0 6px"><tr><td bgcolor="#FFF200" style="background:#FFF200;background-color:#FFF200;padding:6px 8px;font:700 13px/1.45 Arial,Helvetica,sans-serif;color:#000000;mso-highlight:yellow"><b style="color:#000000">${esc(($('narrative').value || '').trim() || autoNarrative(t, T))}</b></td></tr></table>`;
 
     // conditions
     h += H(`Current Tide & Surf Conditions – as of ${t.short}`);
